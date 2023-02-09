@@ -1,6 +1,8 @@
-import { NextPage } from 'next';
-import { signIn, signOut, useSession } from 'next-auth/react';
-import Head from 'next/head';
+import Auth from '@/components/Auth/Auth';
+import Chat from '@/components/Chat/Chat';
+import { Box } from '@chakra-ui/react';
+import { NextPage, NextPageContext } from 'next';
+import { getSession, useSession } from 'next-auth/react';
 
 const Home: NextPage = () => {
   const { data } = useSession();
@@ -8,21 +10,30 @@ const Home: NextPage = () => {
   console.log('HERE IS DATA', data);
 
   return (
-    <>
-      <Head>
-        <title>iMessage</title>
-      </Head>
-      <main>
-        {data?.user ? (
-          <button onClick={() => signOut()}>Sign Out</button>
+    <Box >
+      {
+        data?.user?.username ? (
+          <>
+          <Chat/>
+          </>
         ) : (
-          <button onClick={() => signIn('google')}>Sign In</button>
-        )}
-        <br />
-        {data?.user?.name}
-      </main>
-    </>
+          <>
+            <Auth/>
+          </>
+        )
+      }
+    </Box>
   );
 };
+
+export async function getServerSideProps(ctx: NextPageContext) {
+  const session = await getSession(ctx);
+
+  return {
+    props: {
+      session
+    }
+  }
+}
 
 export default Home;
