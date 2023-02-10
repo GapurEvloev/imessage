@@ -5,23 +5,19 @@ import { NextPage, NextPageContext } from 'next';
 import { getSession, useSession } from 'next-auth/react';
 
 const Home: NextPage = () => {
-  const { data } = useSession();
+  const { data: session } = useSession();
 
-  console.log('HERE IS DATA', data);
+  console.log('HERE IS DATA', session);
+
+  const reloadSession = () => {};
 
   return (
-    <Box >
-      {
-        data?.user?.username ? (
-          <>
-          <Chat/>
-          </>
-        ) : (
-          <>
-            <Auth/>
-          </>
-        )
-      }
+    <Box>
+      {session?.user?.username ? (
+        <Chat />
+      ) : (
+        <Auth session={session} reloadSession={reloadSession} />
+      )}
     </Box>
   );
 };
@@ -31,9 +27,9 @@ export async function getServerSideProps(ctx: NextPageContext) {
 
   return {
     props: {
-      session
-    }
-  }
+      session,
+    },
+  };
 }
 
 export default Home;
