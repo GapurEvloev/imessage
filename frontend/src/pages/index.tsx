@@ -7,7 +7,7 @@ import { getSession, useSession } from 'next-auth/react';
 const Home: NextPage = () => {
   const { data: session } = useSession();
 
-  console.log('HERE IS DATA', session);
+  console.log('HERE IS SESSION', session);
 
   const reloadSession = () => {};
 
