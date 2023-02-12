@@ -50,8 +50,8 @@ const resolvers = {
         });
 
         return {
-          success: true
-        }
+          success: true,
+        };
       } catch (error: any) {
         console.log("createUsername error", error);
         return {

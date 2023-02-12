@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client/scripts/default-index";
+import { PrismaClient } from "@prisma/client";
 import { ApolloServer } from "apollo-server-express";
 import {
   ApolloServerPluginDrainHttpServer,
@@ -11,7 +11,7 @@ import { getSession } from "next-auth/react";
 import typeDefs from "./graphql/typeDefs";
 import resolvers from "./graphql/resolvers";
 import * as dotenv from "dotenv";
-import { GraphQLContext } from "./utils/types";
+import { GraphQLContext, Session } from "./utils/types";
 
 async function main() {
   dotenv.config();
@@ -38,7 +38,7 @@ async function main() {
     csrfPrevention: true,
     cache: "bounded",
     context: async ({ req, res }): Promise<GraphQLContext> => {
-      const session = await getSession({ req });
+      const session = (await getSession({ req })) as Session;
       return { session, prisma };
     },
     plugins: [
