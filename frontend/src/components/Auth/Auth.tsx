@@ -58,7 +58,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
                 setUsername(event.target.value)
               }
             />
-            <Button onClick={onSubmit} width="100%">
+            <Button onClick={onSubmit} width="100%" isLoading={loading}>
               Save
             </Button>
           </>
