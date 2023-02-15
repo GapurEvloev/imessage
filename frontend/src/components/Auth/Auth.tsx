@@ -2,6 +2,9 @@ import React from 'react';
 import { Button, Center, Image, Input, Stack, Text } from '@chakra-ui/react';
 import { Session } from 'next-auth';
 import { signIn } from 'next-auth/react';
+import { useMutation } from '@apollo/client';
+import UserOperations from '@/graphql/operations/user';
+import { CreateUsernameData, CreateUsernameVariables } from '@/utils/types';
 
 interface IAuthProps {
   session: Session | null;
@@ -10,14 +13,22 @@ interface IAuthProps {
 
 const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
   const [username, setUsername] = React.useState('');
+  const [createUsername, { data, loading, error }] = useMutation<
+    CreateUsernameData,
+    CreateUsernameVariables
+  >(UserOperations.Mutations.createUsername);
+
+  console.log('HERE IS DATA', { data, loading, error });
 
   const onSubmit = async () => {
     if (!username) return;
 
     try {
-      /**
-       * Reload session to obtain new username
-       */
+      await createUsername({
+        variables: {
+          username,
+        },
+      });
     } catch (error: any) {
       console.log('onSubmit error', error);
     }
@@ -36,7 +47,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
                 setUsername(event.target.value)
               }
             />
-            <Button onClick={onSubmit} width="100%" isDisabled={!username}>
+            <Button onClick={onSubmit} width="100%" isDisabled={!username} isLoading={loading}>
               Save
             </Button>
           </>
