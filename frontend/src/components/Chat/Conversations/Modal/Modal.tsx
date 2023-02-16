@@ -1,7 +1,13 @@
 import Participants from '@/components/Chat/Conversations/Modal/Participants';
 import UserSearchList from '@/components/Chat/Conversations/Modal/UserSearchList';
-import { SearchedUser, SearchUsersData, SearchUsersInput } from '@/utils/types';
-import { useLazyQuery } from '@apollo/client';
+import {
+  CreateConversationData,
+  CreateConversationInput,
+  SearchedUser,
+  SearchUsersData,
+  SearchUsersInput,
+} from '@/utils/types';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import {
   Button,
   Input,
@@ -14,31 +20,51 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
+import { Session } from 'next-auth';
 import { useState } from 'react';
 import UserOperations from '@/graphql/operations/user';
-import toast from "react-hot-toast";
+import ConversationOperations from '@/graphql/operations/conversation';
+import toast from 'react-hot-toast';
 
 interface ModalProps {
+  session: Session;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ConversationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const ConversationModal: React.FC<ModalProps> = ({
+  session,
+  isOpen,
+  onClose,
+}) => {
+  const {
+    user: { id: userId },
+  } = session;
   const [username, setUsername] = useState('');
   const [participants, setParticipants] = useState<Array<SearchedUser>>([]);
   const [searchUsers, { data, error, loading }] = useLazyQuery<
     SearchUsersData,
     SearchUsersInput
   >(UserOperations.Queries.searchUsers);
+  const [createConversation, { loading: createConversationLoading }] =
+    useMutation<CreateConversationData, CreateConversationInput>(
+      ConversationOperations.Mutations.createConversation,
+    );
 
   const onCreateConversation = async () => {
+    const participantsIds = [userId, ...participants.map((p) => p.id)];
     try {
-      // createConversation mutation
+      const { data } = await createConversation({
+        variables: {
+          participantsIds,
+        },
+      });
+      console.log("Create Conversation DATA", data)
     } catch (error: any) {
-      console.log("onCreateConversation error", error);
-      toast.error(error?.message)
+      console.log('onCreateConversation error', error);
+      toast.error(error?.message);
     }
-  }
+  };
 
   const onSearch = (event: React.FormEvent) => {
     event.preventDefault();
@@ -97,8 +123,8 @@ const ConversationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                   w="100%"
                   mt={6}
                   _hover={{ bg: 'brand.100' }}
-                  // isDisabled={
-                  onClick={() => {}}
+                  isLoading={createConversationLoading}
+                  onClick={onCreateConversation}
                 >
                   Create Conversation
                 </Button>
