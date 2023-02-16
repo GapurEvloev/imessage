@@ -1,6 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { ISODateString } from "next-auth";
-// import { Session } from "next-auth";
 
 export interface GraphQLContext {
   session: Session | null;
@@ -27,5 +26,5 @@ export interface User {
   email?: string;
   image?: string;
   name?: string;
-  emailVerified: boolean;
+  emailVerified?: boolean;
 }

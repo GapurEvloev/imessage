@@ -36,17 +36,16 @@ const resolvers = {
 
         await prisma.user.update({
           where: {
-            id: userId
+            id: userId,
           },
           data: {
-            username
-          }
-        })
+            username,
+          },
+        });
 
         return {
-          success: true
-        }
-
+          success: true,
+        };
       } catch (error: any) {
         console.log("createUsername error", error);
         return {
