@@ -1,11 +1,11 @@
 import React from 'react';
-import { useMutation } from '@apollo/client';
 import { Button, Center, Image, Input, Stack, Text } from '@chakra-ui/react';
 import { Session } from 'next-auth';
 import { signIn } from 'next-auth/react';
+import { useMutation } from '@apollo/client';
 import UserOperations from '@/graphql/operations/user';
 import { CreateUsernameData, CreateUsernameVariables } from '@/utils/types';
-import toast from 'react-hot-toast';
+import toast from "react-hot-toast";
 
 interface IAuthProps {
   session: Session | null;
@@ -23,7 +23,11 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
     if (!username) return;
 
     try {
-      const { data } = await createUsername({ variables: { username } });
+      const { data } = await createUsername({
+        variables: {
+          username,
+        },
+      });
 
       if (!data?.createUsername) {
         throw new Error();
@@ -58,7 +62,7 @@ const Auth: React.FC<IAuthProps> = ({ session, reloadSession }) => {
                 setUsername(event.target.value)
               }
             />
-            <Button onClick={onSubmit} width="100%" isLoading={loading}>
+            <Button onClick={onSubmit} width="100%" isDisabled={!username} isLoading={loading}>
               Save
             </Button>
           </>

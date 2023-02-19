@@ -1,8 +1,11 @@
-import Auth from '@/components/Auth/Auth';
-import Chat from '@/components/Chat/Chat';
-import { Box } from '@chakra-ui/react';
+import Auth from "@/components/Auth/Auth";
+import Chat from "@/components/Chat/Chat";
+import { Box } from "@chakra-ui/react";
+import { Inter } from '@next/font/google';
 import { NextPage, NextPageContext } from 'next';
-import { getSession, useSession } from 'next-auth/react';
+import { getSession, signIn, signOut, useSession } from 'next-auth/react';
+
+const inter = Inter({ subsets: ['latin'] });
 
 const Home: NextPage = () => {
   const { data: session } = useSession();
@@ -16,7 +19,7 @@ const Home: NextPage = () => {
 
   return (
     <Box>
-      {session?.user?.username ? (
+      {session?.user.username ? (
         <Chat session={session} />
       ) : (
         <Auth session={session} reloadSession={reloadSession} />
@@ -25,14 +28,14 @@ const Home: NextPage = () => {
   );
 };
 
-export async function getServerSideProps(ctx: NextPageContext) {
-  const session = await getSession(ctx);
+export async function getServerSideProps(context: NextPageContext) {
+  const session = await getSession(context);
 
   return {
     props: {
       session,
-    },
-  };
+    }
+  }
 }
 
 export default Home;

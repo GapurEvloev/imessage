@@ -13,6 +13,7 @@ const Chat: React.FC<IChatProps> = ({ session }) => {
     <Flex h="100vh">
       <ConversationsWrapper session={session} />
       <FeedWrapper session={session} />
+      <Button onClick={()=> signOut()}>Logout</Button>
     </Flex>
   );
 };

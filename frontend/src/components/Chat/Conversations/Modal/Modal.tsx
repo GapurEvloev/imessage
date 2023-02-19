@@ -1,4 +1,13 @@
-import { useLazyQuery, useQuery } from '@apollo/client';
+import Participants from '@/components/Chat/Conversations/Modal/Participants';
+import UserSearchList from '@/components/Chat/Conversations/Modal/UserSearchList';
+import {
+  CreateConversationData,
+  CreateConversationInput,
+  SearchedUser,
+  SearchUsersData,
+  SearchUsersInput,
+} from '@/utils/types';
+import { useLazyQuery, useMutation } from '@apollo/client';
 import {
   Button,
   Input,
@@ -11,25 +20,84 @@ import {
   Stack,
   Text,
 } from '@chakra-ui/react';
+import { Session } from 'next-auth';
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import UserOperations from '@/graphql/operations/user';
-import { SearchUsersData, SearchUsersInput } from '@/utils/types';
+import ConversationOperations from '@/graphql/operations/conversation';
+import toast from 'react-hot-toast';
 
 interface ModalProps {
+  session: Session;
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ConversationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
+const ConversationModal: React.FC<ModalProps> = ({
+  session,
+  isOpen,
+  onClose,
+}) => {
+  const {
+    user: { id: userId },
+  } = session;
+  const router = useRouter();
   const [username, setUsername] = useState('');
-  const [searchUsers, { data, loading, error }] = useLazyQuery<
+  const [participants, setParticipants] = useState<Array<SearchedUser>>([]);
+  const [searchUsers, { data, error, loading }] = useLazyQuery<
     SearchUsersData,
     SearchUsersInput
   >(UserOperations.Queries.searchUsers);
+  const [createConversation, { loading: createConversationLoading }] =
+    useMutation<CreateConversationData, CreateConversationInput>(
+      ConversationOperations.Mutations.createConversation,
+    );
 
-  const onSearch = async (event: React.FormEvent) => {
+  const onCreateConversation = async () => {
+    const participantsIds = [userId, ...participants.map((p) => p.id)];
+    try {
+      const { data } = await createConversation({
+        variables: {
+          participantsIds,
+        },
+      });
+
+      if (!data?.createConversation) {
+        throw new Error('Failed to create conversation');
+      }
+
+      const {
+        createConversation: { conversationId },
+      } = data;
+      router.push({ query: { conversationId } });
+
+      /**
+       * Clear state and close modal
+       * on successful creation
+       */
+      setParticipants([])
+      setUsername("")
+      onClose();
+    } catch (error: any) {
+      console.log('onCreateConversation error', error);
+      toast.error(error?.message);
+    }
+  };
+
+  const onSearch = (event: React.FormEvent) => {
     event.preventDefault();
+    console.log('onSearch');
     searchUsers({ variables: { username } });
+  };
+
+  const addParticipant = (user: SearchedUser) => {
+    if (participants.some((p) => p.id === user.id)) return;
+    setParticipants((prevState) => [...prevState, user]);
+    setUsername('');
+  };
+
+  const removeParticipant = (userId: string) => {
+    setParticipants((prevState) => prevState.filter((p) => userId !== p.id));
   };
 
   return (
@@ -37,7 +105,7 @@ const ConversationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay />
         <ModalContent bg="#2d2d2d" pb={4}>
-          <ModalHeader>Modal Title</ModalHeader>
+          <ModalHeader>Create a Conversation</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
             <form onSubmit={onSearch}>
@@ -47,11 +115,39 @@ const ConversationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                   value={username}
                   onChange={(event) => setUsername(event.target.value)}
                 />
-                <Button type="submit" isDisabled={!username}>
+                <Button
+                  type="submit"
+                  isDisabled={!username}
+                  isLoading={loading}
+                >
                   Search
                 </Button>
               </Stack>
             </form>
+            {data?.searchUsers && (
+              <UserSearchList
+                users={data.searchUsers}
+                addParticipant={addParticipant}
+              />
+            )}
+            {participants.length !== 0 && (
+              <>
+                <Participants
+                  participants={participants}
+                  removeParticipant={removeParticipant}
+                />
+                <Button
+                  bg="brand.100"
+                  w="100%"
+                  mt={6}
+                  _hover={{ bg: 'brand.100' }}
+                  isLoading={createConversationLoading}
+                  onClick={onCreateConversation}
+                >
+                  Create Conversation
+                </Button>
+              </>
+            )}
           </ModalBody>
         </ModalContent>
       </Modal>
