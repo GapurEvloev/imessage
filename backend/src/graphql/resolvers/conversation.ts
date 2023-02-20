@@ -44,7 +44,9 @@ const resolvers = {
         /**
          * Since above query does not work
          */
-        return conversations.filter(conv => !!conv.participants.find(p => p.userId === userId))
+        return conversations.filter(
+          (conv) => !!conv.participants.find((p) => p.userId === userId)
+        );
         // return conversations;
       } catch (error: any) {
         console.log("conversations error", error);
@@ -58,7 +60,7 @@ const resolvers = {
       args: { participantsIds: Array<string> },
       context: GraphQLContext
     ): Promise<{ conversationId: string }> => {
-      const { session, prisma } = context;
+      const { session, prisma, pubsub } = context;
       const { participantsIds } = args;
 
       if (!session?.user) {
@@ -85,6 +87,9 @@ const resolvers = {
         });
 
         // emit
+        pubsub.publish("CONVERSATION_CREATED", {
+          conversationCreated: conversation,
+        });
 
         return {
           conversationId: conversation.id,
@@ -93,6 +98,15 @@ const resolvers = {
         console.log("createConversation error", error);
         throw new ApolloError("Error creating conversation");
       }
+    },
+  },
+  Subscription: {
+    conversationCreated: {
+      subscribe: (_: any, __: any, context: GraphQLContext) => {
+        const { pubsub } = context;
+
+        pubsub.asyncIterator(['CONVERSATION_CREATED'])
+      },
     },
   },
 };

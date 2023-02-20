@@ -17,7 +17,7 @@ export interface GraphQLContext {
 }
 
 export interface Session {
-  user: User;
+  user?: User;
   expires: ISODateString;
 }
 

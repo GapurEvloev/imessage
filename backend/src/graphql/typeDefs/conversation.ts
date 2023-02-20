@@ -22,11 +22,15 @@ const typeDefs = gql`
   type Participant {
     id: String
     user: User
-      hasSeenLatestMessage: Boolean
+    hasSeenLatestMessage: Boolean
   }
 
   type Query {
     conversations: [Conversation]
+  }
+
+  type Subscription {
+    conversationCreated: Conversation
   }
 `;
 
