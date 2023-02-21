@@ -1,3 +1,4 @@
+import MessagesHeader from "@/components/Chat/Feed/Messages/Header";
 import { Flex, Text } from '@chakra-ui/react';
 import { Session } from 'next-auth';
 import { useRouter } from 'next/router';
@@ -9,6 +10,7 @@ interface FeedWrapperProps {
 const FeedWrapper: React.FC<FeedWrapperProps> = ({ session }) => {
   const router = useRouter();
   const { conversationId } = router.query;
+  const {user: {id: userId}} = session
 
   return (
     <Flex
@@ -16,8 +18,24 @@ const FeedWrapper: React.FC<FeedWrapperProps> = ({ session }) => {
       w="100%"
       direction="column"
     >
-      {conversationId ? (
-        <Flex>{conversationId}</Flex>
+      {conversationId && typeof conversationId === "string" ? (
+        <Flex
+          direction="column"
+          justify="space-between"
+          overflow="hidden"
+          flexGrow={1}
+        >
+          {/*{conversationId}*/}
+          <MessagesHeader
+            userId={userId}
+            conversationId={conversationId}
+          />
+          {/*<Messages*/}
+          {/*  userId={session.user.id}*/}
+          {/*  conversationId={conversationId}*/}
+          {/*/>*/}
+        </Flex>
+
       ) : (
         <Text>No conversation</Text>
       )}
